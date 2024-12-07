@@ -15,26 +15,6 @@ Each service:
 - Communicates with other services via REST APIs
 - Is built using Django and Django REST Framework
 
-### Service Communication Diagram
-
-┌───────────────────┐                  ┌───────────────────┐
-│                   │                  │                   │
-│  Student Service  │◄─────────────────│  Grading Service  │
-│     (8001)       │                  │     (8004)        │
-│                   │                  │                   │
-└────────┬─────────┘                  └─────────┬─────────┘
-         │                                      │
-         │                                      │
-         │                                      │
-         │                                      │
-         ▼                                      ▼
-┌───────────────────┐                  ┌───────────────────┐
-│                   │                  │                   │
-│  Course Service   │◄─────────────────│ Professor Service │
-│     (8002)       │                  │     (8003)        │
-│                   │                  │                   │
-└───────────────────┘                  └───────────────────┘
-
 ───► : Service calls/dependencies
 
 ### Apply migrations for each service
