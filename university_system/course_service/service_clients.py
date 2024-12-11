@@ -1,27 +1,52 @@
-import requests
 from django.conf import settings
+import requests
 from rest_framework.exceptions import ValidationError
+from service_registry.registry import registry
+from functools import wraps
 
-class ProfessorServiceClient:
-    BASE_URL = "http://localhost:8003/api"
-
-    @classmethod
-    def get_course_professors(cls, course_id):
+class ServiceClient:
+    def __init__(self, service_id):
+        self.service_id = service_id
+    
+    @property
+    def base_url(self):
+        return registry.get_service_url(self.service_id)
+    
+    def make_request(self, method, endpoint, **kwargs):
         try:
-            response = requests.get(f"{cls.BASE_URL}/assignments/", 
-                                  params={'course_id': course_id})
+            url = f"{self.base_url.rstrip('/')}/{endpoint.lstrip('/')}"
+            response = requests.request(method, url, **kwargs)
+            response.raise_for_status()
             return response.json()
         except requests.RequestException as e:
-            raise ValidationError(f"Could not fetch professors: {str(e)}")
+            raise ValidationError(f"Service request failed: {str(e)}")
 
-class StudentServiceClient:
-    BASE_URL = "http://localhost:8001/api"
+    def fallback_response(self, endpoint):
+        """Provide fallback response when service is unavailable"""
+        if 'professors' in endpoint:
+            return []  # Empty list of professors
+        elif 'students' in endpoint:
+            return []  # Empty list of students
+        return None
 
-    @classmethod
-    def get_course_students(cls, course_id):
+    def with_circuit_breaker(self, method, endpoint, **kwargs):
         try:
-            response = requests.get(f"{cls.BASE_URL}/registrations/", 
-                                  params={'course_id': course_id})
-            return response.json()
-        except requests.RequestException as e:
-            raise ValidationError(f"Could not fetch students: {str(e)}")
+            return self.make_request(method, endpoint, **kwargs)
+        except (ValidationError, ConnectionError):
+            return self.fallback_response(endpoint)
+
+class ProfessorServiceClient(ServiceClient):
+    def __init__(self):
+        super().__init__('PROFESSOR_SERVICE')
+
+    def get_course_professors(self, course_id):
+        return self.with_circuit_breaker('GET', 'assignments/', 
+                                       params={'course_id': course_id})
+
+class StudentServiceClient(ServiceClient):
+    def __init__(self):
+        super().__init__('STUDENT_SERVICE')
+
+    def get_course_students(self, course_id):
+        return self.with_circuit_breaker('GET', 'registrations/',
+                                       params={'course_id': course_id})

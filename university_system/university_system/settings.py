@@ -146,3 +146,11 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SERVICE_REGISTRY = {
+    'CIRCUIT_BREAKER': {
+        'FAILURE_THRESHOLD': 5,  # Number of failures before opening circuit
+        'RECOVERY_TIMEOUT': 60,  # Seconds to wait before attempting recovery
+        'SUCCESS_THRESHOLD': 2,  # Number of successful calls to close circuit
+    }
+}

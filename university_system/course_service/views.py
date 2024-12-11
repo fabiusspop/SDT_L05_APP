@@ -30,3 +30,9 @@ class CurriculumViewSet(viewsets.ModelViewSet):
 class CurriculumCourseViewSet(viewsets.ModelViewSet):
     queryset = CurriculumCourse.objects.all()
     serializer_class = CurriculumCourseSerializer
+    
+# Add this to course_service/views.py to simulate failures
+@action(detail=True, methods=['get'])
+def test_circuit_breaker(self, request, course_id=None):
+        # Simulate a service failure
+        raise ConnectionError("Service temporarily unavailable")
