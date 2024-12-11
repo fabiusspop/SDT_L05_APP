@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from .models import Student, CourseRegistration
 from .serializers import StudentSerializer, CourseRegistrationSerializer
@@ -20,3 +20,8 @@ class StudentViewSet(viewsets.ModelViewSet):
 class CourseRegistrationViewSet(viewsets.ModelViewSet):
     queryset = CourseRegistration.objects.all()
     serializer_class = CourseRegistrationSerializer
+
+@api_view(['GET'])
+def health_check(request):
+    """Health check endpoint"""
+    return Response({'status': 'healthy'}, status=200)
